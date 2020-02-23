@@ -1,17 +1,15 @@
-const express = require('express')
-const bodyParser = require('body-parser');
-const { checkSchema } = require('express-validator');
-const user = require('./api/user');
+const Server = require('./server');
 
 
-const app = express();
-const port = 1234;
+const UserDAO = require('./DAO/user');
+const TokenDAO = require('./DAO/token');
 
-app.use(bodyParser.json());
+const tokens = new TokenDAO()
+const users = new UserDAO(tokens)
 
-// User routes
-app.post("/users", checkSchema(user.schema()), user.create)
+const port = 1234
 
+const server = new Server(users, tokens, port);
 
-const server = app.listen(port, () => console.log(`App listening on port ${port}!`))
-module.exports = server;
+server.run(`App listening on port ${port}`);
+
