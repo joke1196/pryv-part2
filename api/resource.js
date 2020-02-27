@@ -9,7 +9,8 @@ exports.create = (resourceDAO) => {
         }
         const resource = new Resource(req.body.id, req.body.data);
         resourceDAO.saveResource(resource).then(savedResource => {
-            return res.status(201).json(resource)
+
+            return res.status(201).json({ data: resource })
         });
 
     };

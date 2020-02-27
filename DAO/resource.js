@@ -8,11 +8,14 @@ module.exports = class ResourceDAO {
     }
 
     saveResource = (resource) => {
-        return this.db.collection(this.collection).insertOne(resource).then(saved => resource);
+        return this.db.collection(this.collection).insertOne(resource).then(saved => {
+            delete resource._id
+            return resource
+        });
     }
 
     fetchResource = (id) => {
-        return this.db.collection(this.collection).findOne({ id: id });
+        return this.db.collection(this.collection).findOne({ id: id }, { _id: 0 });
     }
 
     deleteResource = (id) => {

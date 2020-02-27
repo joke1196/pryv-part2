@@ -3,25 +3,36 @@ const bodyParser = require('body-parser');
 const { checkSchema } = require('express-validator');
 
 const user = require('./api/user');
-const login = require('./api/login');
+const auth = require('./api/auth');
+const resource = require('./api/resource');
 
+const TokenDAO = require('./DAO/token');
+const UserDAO = require('./DAO/user');
+const ResourceDAO = require('./DAO/resource');
 
 
 module.exports = class Server {
-
-    app = express();
-    constructor(users, tokens, port = 1234) {
+    constructor(dbClient) {
+        this.app = express();
         this.app.use(bodyParser.json());
-        this.port = port;
+
+        this.tokens = new TokenDAO(dbClient);
+        this.users = new UserDAO(dbClient);
+        this.resources = new ResourceDAO(dbClient);
 
         // User routes
-        this.app.post("/users", checkSchema(user.schema()), user.create(users))
+        this.app.post("/users", checkSchema(user.schema()), user.create(this.users, this.tokens));
 
-        // Login routed
-        this.app.post("/auth/login", checkSchema(user.schema()), login.login(users, tokens))
+        // Login routes
+        this.app.post("/auth/login", checkSchema(user.schema()), auth.login(this.users, this.tokens));
 
+        // Resources routes
+        this.app.post("/resources", auth.authentication(this.tokens), checkSchema(resource.schema()), resource.create(this.resources));
+
+        this.app.get("/resources/:id", auth.authentication(this.tokens), resource.get(this.resources));
+
+        this.app.delete("/resources/:id", auth.authentication(this.tokens), resource.delete(this.resources));
+
+        this.app.put("/resources/:id", auth.authentication(this.tokens), checkSchema(resource.schema()), resource.update(this.resources));
     }
-
-    run = (message) => this.app.listen(this.port, () => console.log(message))
-
 }
