@@ -1,18 +1,19 @@
 const deepEqual = require('deep-equal');
 
 module.exports = class UserDAO {
-    constructor(tokenDAO, dataStore) {
+    constructor(dataStore) {
         this.db = dataStore;
-        this.tokenDAO = tokenDAO;
+        this.collection = "users";
     }
 
     saveUser = (user) => {
-        this.db.set(user.username, user);
-        return this.tokenDAO.generateToken();
+        return this.db.collection(this.collection).insertOne(user).then(savedUser => {
+            return user;
+        });
     }
 
     getUser = (username) => {
-        return this.db.get(username);
+        return this.db.collection(this.collection).findOne({ username: username });
     }
 
     isValidPassword = (storedPassword, currentUserPassword) => {

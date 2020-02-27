@@ -1,23 +1,38 @@
 const request = require('supertest');
-const inMemoryDB = require('../../persistence/inMemoryDB')
-
-const UserDAO = require('../../DAO/user');
-const TokenDAO = require('../../DAO/token');
-
-const tokens = new TokenDAO(inMemoryDB.db());
-const users = new UserDAO(tokens, inMemoryDB.db())
 const Server = require('../../server.js');
+const db = require('../../persistence/db');
 
-
-describe('loading express', function () {
+describe('User routes', function () {
     let server;
-    beforeEach(function () {
-        testServer = new Server(users, tokens)
-        server = testServer.run();
+
+    before(function (done) {
+        const port = 1234
+        db.connect(db.url, (err) => {
+            if (err) {
+                console.error(err)
+            } else {
+                testServer = new Server(db.get().db("test"));
+                server = testServer.app.listen(port, () => "");
+            }
+            done();
+        })
     });
 
-    afterEach(function () {
+
+    afterEach(function (done) {
+        if (db.get()) {
+            db.get().db("test").dropDatabase((err) => {
+                done();
+            });
+        }
+    });
+
+    after(function (done) {
         server.close();
+        db.close((err) => {
+            if (err) console.error(err);
+            done()
+        });
     });
 
 
@@ -43,11 +58,5 @@ describe('loading express', function () {
                 "username": "john",
             })
             .expect(422, done);
-    });
-
-    it('404 everything else', function testPath(done) {
-        request(server)
-            .get('/')
-            .expect(404, done);
     });
 });
