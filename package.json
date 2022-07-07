@@ -23,7 +23,7 @@
     "deep-equal": "^2.0.1",
     "express": "^4.17.1",
     "express-validator": "^6.4.0",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "mongodb": "^3.5.4",
     "nanoid": "^2.1.11"
   },
